@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Clone Bloa Interpreter
+      run: |
+        git clone https://github.com/bloa-lang/bloa-src.git ../bloa-src
+
+    - name: Build Bloa Interpreter
+      run: |
+        cd ../bloa-src
+        mkdir -p build && cd build
+        cmake -DCMAKE_BUILD_TYPE=Release ..
+        cmake --build .
+
+    - name: Run Tests
+      run: |
+        cd /workspaces/bloa-tools
+        ../bloa-src/build/bloa run_tests.bloa

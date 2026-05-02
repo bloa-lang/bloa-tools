@@ -1,0 +1,131 @@
+// Test Linter
+// Include linter functions
+
+function lint_file(input_file) {
+    content = shell("cat " + input_file)
+    if (!content) {
+        say "Error: Cannot read file " + input_file
+        return false
+    }
+
+    lines = split_lines(content)
+    errors = []
+    warnings = []
+    variables = []
+    used_vars = []
+
+    line_num = 1
+    foreach (lines as line) {
+        trimmed = trim(line)
+        if (trimmed == "" || starts_with(trimmed, "#")) {
+            line_num = line_num + 1
+            continue
+        }
+
+        // Check indentation
+        indent = len(line) - len(ltrim(line))
+        if (indent % 4 != 0) {
+            errors = append(errors, "Line " + str(line_num) + ": Inconsistent indentation (" + str(indent) + " spaces)")
+        }
+
+        // Check missing semicolon
+        if (needs_semicolon(trimmed) && !ends_with(trimmed, ";")) {
+            errors = append(errors, "Line " + str(line_num) + ": Missing semicolon")
+        }
+
+        // Track variables (simple)
+        if (starts_with(trimmed, "let ") || starts_with(trimmed, "var ")) {
+            parts = split(trimmed, " ")
+            if (len(parts) > 1) {
+                var_name = parts[1]
+                if (find(var_name, "=") != -1) {
+                    var_name = split(var_name, "=")[0]
+                }
+                variables = append(variables, trim(var_name))
+            }
+        }
+
+        // Track usage (simple)
+        words = split(trimmed, " ")
+        foreach (words as word) {
+            word = trim(word)
+            if (word != "" && word != "if" && word != "else" && word != "while" && word != "for" && word != "function" && word != "class" && word != "return" && word != "break" && word != "continue" && word != "true" && word != "false" && word != "null" && !starts_with(word, "\"") && !ends_with(word, "\"")) {
+                used_vars = append(used_vars, word)
+            }
+        }
+
+        line_num = line_num + 1
+    }
+
+    // Check unused variables
+    foreach (variables as var) {
+        found = false
+        foreach (used_vars as used) {
+            if (used == var) {
+                found = true
+                break
+            }
+        }
+        if (!found) {
+            warnings = append(warnings, "Unused variable: " + var)
+        }
+    }
+
+    // Output results
+    if (len(errors) > 0) {
+        say "Errors:"
+        foreach (errors as err) {
+            say "  " + err
+        }
+    }
+
+    if (len(warnings) > 0) {
+        say "Warnings:"
+        foreach (warnings as warn) {
+            say "  " + warn
+        }
+    }
+
+    if (len(errors) == 0 && len(warnings) == 0) {
+        say "No issues found."
+    }
+
+    return true
+}
+
+function needs_semicolon(line) {
+    statements = ["say ", "echo ", "ask ", "return ", "break", "continue", "let ", "var ", "use ", "require "]
+    foreach (statements as stmt) {
+        if (starts_with(line, stmt) && find(line, "=") != -1) {
+            return true
+        }
+    }
+    return false
+}
+
+function split_lines(text) {
+    lines = []
+    i = 0
+    while (i < len(text)) {
+        start = i
+        while (i < len(text) && text[i] != "\n") {
+            i = i + 1
+        }
+        line = substr(text, start, i - start)
+        lines = append(lines, line)
+        if (i < len(text)) {
+            i = i + 1
+        }
+    }
+    return lines
+}
+
+// Test
+say "Testing Linter..."
+lint_code = "let x = 5\nsay \"hello\""
+system("echo '" + replace(lint_code, "'", "\\'") + "' > test_lint.bloa")
+say "Linter output:"
+lint_file("test_lint.bloa")
+
+// Clean up
+system("rm test_lint.bloa")

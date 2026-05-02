@@ -1,0 +1,10 @@
+// Build BAAR archive for Bloa Tools
+
+formatter_content = read_file("/workspaces/bloa-tools/src/formatter.bloa")
+linter_content = read_file("/workspaces/bloa-tools/src/linter.bloa")
+
+main_dispatch = read_file("/workspaces/bloa-tools/src/archive_main.bloa")
+main_content = formatter_content + "\n\n" + linter_content + "\n\n" + main_dispatch
+entries = [["main.bloa", main_content]]
+baar_create("/workspaces/bloa-tools/bloa-tools.baar", entries)
+say "BAAR archive created: bloa-tools.baar"

@@ -1,0 +1,23 @@
+// Bloa Tools Main
+say "Bloa Tools v1.0"
+say "Usage:"
+say "  bloa-tools.baar formatter <input> <output>"
+say "  bloa-tools.baar linter <input>"
+
+if (len(args) >= 1) {
+    command = args[0]
+    if (command == "formatter" && len(args) == 3) {
+        require("src/formatter.bloa")
+        input_file = args[1]
+        output_file = args[2]
+        format_file(input_file, output_file)
+    } else if (command == "linter" && len(args) == 2) {
+        require("src/linter.bloa")
+        input_file = args[1]
+        lint_file(input_file)
+    } else {
+        say "Invalid command or arguments"
+    }
+} else {
+    say "No command specified"
+}

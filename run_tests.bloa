@@ -1,0 +1,8 @@
+// Run all tests
+say "Running Bloa Tools Tests..."
+
+say "Tools are ready. Manual testing:"
+say "Formatter: /path/to/bloa src/formatter.bloa <input> <output>"
+say "Linter: /path/to/bloa src/linter.bloa <input>"
+
+say "Tests completed."

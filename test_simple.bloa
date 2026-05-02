@@ -1,0 +1,4 @@
+// Simple test
+say "Hello from Bloa"
+x = 5
+say "x = " + str(x)

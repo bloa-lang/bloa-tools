@@ -1,0 +1,27 @@
+// Test for Bloa Tools
+
+// Test Formatter
+say "Testing Formatter..."
+test_code = "if (x > 10) {\nsay \"big\"\n}"
+write_file("test_input.bloa", test_code)
+format_file("test_input.bloa", "test_output.bloa")
+formatted = read_file("test_output.bloa")
+expected = "if (x > 10) {\n    say \"big\";\n}"
+if (formatted == expected) {
+    say "Formatter test passed"
+} else {
+    say "Formatter test failed"
+    say "Expected: " + expected
+    say "Got: " + formatted
+}
+
+// Test Linter
+say "Testing Linter..."
+lint_code = "let x = 5\nsay \"hello\""
+write_file("test_lint.bloa", lint_code)
+// Capture output somehow? For now, just run
+say "Linter output:"
+lint_file("test_lint.bloa")
+
+// Clean up
+system("rm test_input.bloa test_output.bloa test_lint.bloa")

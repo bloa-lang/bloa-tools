@@ -1,0 +1,101 @@
+// Test Formatter
+// Include formatter functions
+// Since Bloa doesn't have include, we'll copy the functions here for testing
+
+function format_file(input_file, output_file) {
+    content = shell("cat " + input_file)
+    if (!content) {
+        say "Error: Cannot read file " + input_file
+        return false
+    }
+
+    lines = split_lines(content)
+    formatted_lines = []
+    indent_level = 0
+    indent_size = 4
+
+    foreach (lines as line) {
+        trimmed = trim(line)
+        if (trimmed == "" || starts_with(trimmed, "#")) {
+            formatted_lines = append(formatted_lines, line)
+            continue
+        }
+
+        // Adjust indent for closing braces
+        if (trimmed == "}") {
+            indent_level = max(0, indent_level - 1)
+        }
+
+        // Create indented line
+        spaces = repeat(" ", indent_level * indent_size)
+        formatted_line = spaces + trimmed
+
+        // Adjust indent for opening braces
+        if (ends_with(trimmed, "{")) {
+            indent_level = indent_level + 1
+        }
+
+        // Add semicolon if needed
+        if (needs_semicolon(trimmed) && !ends_with(trimmed, ";")) {
+            formatted_line = formatted_line + ";"
+        }
+
+        formatted_lines = append(formatted_lines, formatted_line)
+    }
+
+    formatted_content = join(formatted_lines, "\n")
+
+    result = system("echo '" + replace(formatted_content, "'", "\\'") + "' > " + output_file)
+    if (result == 0) {
+        say "Formatted code written to " + output_file
+        return true
+    } else {
+        say "Error: Cannot write to file " + output_file
+        return false
+    }
+}
+
+function needs_semicolon(line) {
+    statements = ["say ", "echo ", "ask ", "return ", "break", "continue", "let ", "var ", "use ", "require "]
+    foreach (statements as stmt) {
+        if (starts_with(line, stmt) && find(line, "=") != -1) {
+            return true
+        }
+    }
+    return false
+}
+
+function split_lines(text) {
+    lines = []
+    i = 0
+    while (i < len(text)) {
+        start = i
+        while (i < len(text) && text[i] != "\n") {
+            i = i + 1
+        }
+        line = substr(text, start, i - start)
+        lines = append(lines, line)
+        if (i < len(text)) {
+            i = i + 1
+        }
+    }
+    return lines
+}
+
+// Test
+say "Testing Formatter..."
+test_code = "if (x > 10) {\nsay \"big\"\n}"
+system("echo '" + replace(test_code, "'", "\\'") + "' > test_input.bloa")
+format_file("test_input.bloa", "test_output.bloa")
+formatted = shell("cat test_output.bloa")
+expected = "if (x > 10) {\n    say \"big\";\n}"
+if (formatted == expected) {
+    say "Formatter test passed"
+} else {
+    say "Formatter test failed"
+    say "Expected: " + expected
+    say "Got: " + formatted
+}
+
+// Clean up
+system("rm test_input.bloa test_output.bloa")
